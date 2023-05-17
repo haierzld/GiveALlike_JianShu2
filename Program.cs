@@ -127,6 +127,7 @@ class Program
         "阿列克谢·涅斯特罗夫(Aleksei Nestorov)"
         };
 
+
         Random random = new Random();
         string comedyStar = comedyStars[random.Next(0, comedyStars.Length)];
 
