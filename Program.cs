@@ -1,4 +1,8 @@
-﻿using System;
+﻿//给某一个人点赞的需求也可以做一下。
+
+
+
+using System;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
 using System.Text.RegularExpressions;
@@ -9,7 +13,8 @@ using Newtonsoft.Json;
 using static System.Net.Mime.MediaTypeNames;
 using Anthropic.Net;
 using Anthropic.Net.Constants;
-
+using System.Threading.Tasks;
+using System.Reflection.Metadata.Ecma335;
 
 class Program
 {
@@ -212,6 +217,115 @@ class Program
         return comedyStar;
     }
 
+    public static async Task<string> GetOpenAiCommentByClaude(string content)
+    {
+        string responseString = string.Empty;
+
+        //将内容中有"号，全进行转义
+        content = content.Replace("\"", "\\\"");
+        //将内容中有换行\n号，全进行转义
+        content = content.Replace("\n", "\\\n");
+
+
+        //超过1000个字，按1000字来算；
+        if (content.Length > contextLength+2000)
+            content = content.Substring(1, contextLength+2000);
+
+        //随机生成10到30的整数
+        Random random = new Random();
+        int randomNumber = random.Next(10, 30);
+
+        //随机获得扮演的角色
+        string comedyStar = getRandomComedyStar();
+        Console.WriteLine($"你现在扮演：{comedyStar}");
+
+        string addMessage = "\"用【" + comedyStar + "】的风格进行评论,根据这个文章内容【" + content + "】,请用小于" + randomNumber + "字进行评论,不要出现这篇文章;\"";
+        var channelId = "D057HV46G04";
+        var jsonContent = $"{{\"channel\":\"{channelId}\",\"text\":{addMessage}}}";
+        /*
+         * OptanonAlertBoxClosed=2023-05-12T05:42:35.351Z; shown_ssb_redirect_page=1; c={"slack_gpt":1}; b=c80ee5b7039707d6950bab1b5911bec2; d=xoxd-VtOFkpkprfqmfoc7qlVhv4DQow5tPM%2BMpHWjd%2BRUff5INyQ3oOytIYymBPJOa%2BWhqHHBzho10QuxfUPUERc5A%2Fv1u2ANkEgcizJF%2BAsMg%2FYbrzU9yRMJA4PlnUeruxkiCAQm6lqFlb7DkP%2BgW5bN5GahbxHzP1SA9hdKqTsjN3GiXw13BepFWqqnAA%3D%3D; lc=1684484210; shown_download_ssb_modal=1; show_download_ssb_banner=1; no_download_ssb_banner=1; d-s=1685240587; utm=%7B%22utm_source%22%3A%22in-prod%22%2C%22utm_medium%22%3A%22inprod-link_app_settings-user_card-click%22%7D; OptanonConsent=isGpcEnabled=0&datestamp=Tue+May+30+2023+10%3A25%3A35+GMT%2B0800+(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)&version=202211.1.0&isIABGlobal=false&hosts=&consentId=bedb186f-a0ba-4a4c-83a7-f89e3e405188&interactionCount=1&landingPath=NotLandingPage&groups=1%3A1%2C2%3A1%2C3%3A1%2C4%3A1&geolocation=SG%3B&AwaitingReconsent=false
+         * https://slack.com/api/chat.postMessage?channel=D057HV46G04&text=Hello&pretty=1
+         *Bearer Token xoxc-5246885754470-5266130985009-5290999882867-9f0f2f5355b3aa6a70dc40aee98c0ef374a33cd2c7433f0176ab444ce5e1665a
+         */
+        HttpClient client = new HttpClient();
+        //string url = "https://slack.com/api/chat.postMessage?channel=D057HV46G04&text=" + addMessage + "&pretty=1";
+        string url = "https://slack.com/api/chat.postMessage";
+
+        client.DefaultRequestHeaders.Add("Authorization", "Bearer xoxc-5246885754470-5266130985009-5290999882867-9f0f2f5355b3aa6a70dc40aee98c0ef374a33cd2c7433f0176ab444ce5e1665a");
+        string cookie = "b=c80ee5b7039707d6950bab1b5911bec2; d=xoxd-VtOFkpkprfqmfoc7qlVhv4DQow5tPM%2BMpHWjd%2BRUff5INyQ3oOytIYymBPJOa%2BWhqHHBzho10QuxfUPUERc5A%2Fv1u2ANkEgcizJF%2BAsMg%2FYbrzU9yRMJA4PlnUeruxkiCAQm6lqFlb7DkP%2BgW5bN5GahbxHzP1SA9hdKqTsjN3GiXw13BepFWqqnAA%3D%3D; lc=1684484210; shown_download_ssb_modal=1; show_download_ssb_banner=1; no_download_ssb_banner=1; d-s=1685240587; utm=%7B%22utm_source%22%3A%22in-prod%22%2C%22utm_medium%22%3A%22inprod-link_app_settings-user_card-click%22%7D; OptanonConsent=isGpcEnabled=0&datestamp=Tue+May+30+2023+10%3A25%3A35+GMT%2B0800+(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)&version=202211.1.0&isIABGlobal=false&hosts=&consentId=bedb186f-a0ba-4a4c-83a7-f89e3e405188&interactionCount=1&landingPath=NotLandingPage&groups=1%3A1%2C2%3A1%2C3%3A1%2C4%3A1&geolocation=SG%3B&AwaitingReconsent=false";
+        client.DefaultRequestHeaders.Add("Cookie", cookie);
+
+        Console.WriteLine($"请求的内容为：{url}\n{jsonContent}");
+
+        try
+        {
+            HttpContent postContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await client.PostAsync(url, postContent);
+            if (response.IsSuccessStatusCode)
+            {
+                responseString = await response.Content.ReadAsStringAsync();
+                //Console.WriteLine(responseString);
+
+
+                bool isTyping = true;
+                do
+                {
+
+                    Console.WriteLine("等待10秒！,等待返回！");
+                    System.Threading.Thread.Sleep(10000);
+
+                    string getDataURL = "https://slack.com/api/conversations.history?channel=D057HV46G04&limit=1";
+                    //client.DefaultRequestHeaders.Add("Authorization", "Bearer xoxc-5246885754470-5266130985009-5290999882867-9f0f2f5355b3aa6a70dc40aee98c0ef374a33cd2c7433f0176ab444ce5e1665a");
+                    //string cookieData = "b=c80ee5b7039707d6950bab1b5911bec2; d=xoxd-VtOFkpkprfqmfoc7qlVhv4DQow5tPM%2BMpHWjd%2BRUff5INyQ3oOytIYymBPJOa%2BWhqHHBzho10QuxfUPUERc5A%2Fv1u2ANkEgcizJF%2BAsMg%2FYbrzU9yRMJA4PlnUeruxkiCAQm6lqFlb7DkP%2BgW5bN5GahbxHzP1SA9hdKqTsjN3GiXw13BepFWqqnAA%3D%3D; lc=1684484210; shown_download_ssb_modal=1; show_download_ssb_banner=1; no_download_ssb_banner=1; d-s=1685240587; utm=%7B%22utm_source%22%3A%22in-prod%22%2C%22utm_medium%22%3A%22inprod-link_app_settings-user_card-click%22%7D; OptanonConsent=isGpcEnabled=0&datestamp=Tue+May+30+2023+10%3A25%3A35+GMT%2B0800+(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)&version=202211.1.0&isIABGlobal=false&hosts=&consentId=bedb186f-a0ba-4a4c-83a7-f89e3e405188&interactionCount=1&landingPath=NotLandingPage&groups=1%3A1%2C2%3A1%2C3%3A1%2C4%3A1&geolocation=SG%3B&AwaitingReconsent=false";
+                    //client.DefaultRequestHeaders.Add("Cookie", cookieData);
+                    HttpResponseMessage response_Data = await client.GetAsync(getDataURL);
+                    if (response_Data.IsSuccessStatusCode)
+                    {
+                        responseString = await response_Data.Content.ReadAsStringAsync();
+
+
+                        dynamic json = JsonConvert.DeserializeObject(responseString);
+
+                        responseString = json.messages[0].text;
+
+                        isTyping = responseString.Contains("Typing…");
+
+                        Console.WriteLine($"获得AI评论内容为：{responseString}");
+
+
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error: {response_Data.StatusCode} - {response_Data.ReasonPhrase}");
+                    }
+                } while (isTyping);
+
+            }
+            else
+            {
+                Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+        } 
+        catch (Exception ex)
+        {
+            Console.WriteLine($"AI评论获取失败！！！！");
+            responseString = "手工点赞！";
+        }
+
+        //因为会产出提示，就会不成功。
+        if (responseString.Contains("Please note:"))
+        {
+            Console.WriteLine($"AI评论获取失败！！！！");
+            responseString = "手工点赞！";
+        }
+
+        return responseString;
+
+
+    }
+
+
 
     //函数，参数content,然后打开https://api.openai.com/v1/chat/completions地址，将conent的内容给openAiapi，让他返回评论的内容。
     public static string GetOpenAiComment(string content)
@@ -254,6 +368,7 @@ class Program
 
                 if (GPTURL.Contains("chat"))
                 {
+                   
                     json = "{"
                             + "\"max_tokens\": " + (contextLength + 200) + ","
                             + "\"messages\": ["
@@ -278,6 +393,7 @@ class Program
                 streamWriter.Close();
             }
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 using (var streamReader = new StreamReader(response.GetResponseStream()))
@@ -321,6 +437,7 @@ class Program
         catch
         {
             Console.WriteLine($"演员名称{comedyStar}" + "！！！替换不成功！！！");
+            responseString = "手工点赞！";
         }
 
         return responseString;
@@ -429,13 +546,16 @@ class Program
         Console.WriteLine("文章内容获得成功！");
 
         //获得AI评价；
-        string ReplyMessage = GetOpenAiComment(content);
+        //string ReplyMessage = GetOpenAiComment(content);
+        //string ReplyMessage="";
+        //Claude Api形式；
+
+        string ReplyMessage = GetOpenAiCommentByClaude(content).GetAwaiter().GetResult(); 
         Console.WriteLine($"获得AI评论内容：{ReplyMessage}");
+
 
         //自动填充评价的内容
         autoInputTextarea(ReplyMessage, driver);
-
-
     }
 
 
@@ -449,22 +569,25 @@ class Program
 
         //随机生成5000到100000的整数
         Random random = new Random();
-        int randomNumber = random.Next(RandomMinSecond, RandomMinSecond + 50000);
+        int randomNumber = random.Next(RandomMinSecond, RandomMinSecond+50000 );
         //延迟{randomNumber/1000}秒
         Console.WriteLine($"延迟{randomNumber / 1000} 秒！");
         System.Threading.Thread.Sleep(randomNumber);
 
-        //自动评论；
-        getURLContent(getALkieURL, driver);
+        //自动点赞  ，窗体大小要注意，有时小了 没有这个button按钮，会出错。【适合无广告及】
+        //IWebElement element = driver.FindElement(By.CssSelector("div._2VdqdF[role='button']"));
 
-        //自动点赞  ，窗体大小要注意，有时小了 没有这个button按钮，会出错。
-        IWebElement element = driver.FindElement(By.CssSelector("div._2VdqdF[role='button']"));
+        //<div class="_3nj4GN" role="button" tabindex="0" aria-label="给文章点赞"><i aria-label="ic-like" class="anticon"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#ic-like"></use></svg></i><span>赞<!-- -->1</span></div> 
+        //使用driver.FindElement方法，获得button,需要加上aria-label="给文章点赞"这个识别
+
+        //改为评论边上的点赞。
+        IWebElement element = driver.FindElement(By.CssSelector("div._3nj4GN[role='button'][aria-label='给文章点赞']"));
 
         if (element != null)
         {
             try
             {
-                element.Click();
+                //  element.Click();
                 Console.WriteLine($"{getALkieURL} 点赞成功！");
             }
             catch
@@ -474,6 +597,11 @@ class Program
         }
         else
             System.Console.WriteLine($"{getALkieURL}没有找到");
+
+        //自动评论；
+        getURLContent(getALkieURL, driver);
+
+
 
 
     }
