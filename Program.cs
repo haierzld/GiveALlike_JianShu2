@@ -8,11 +8,8 @@ using OpenQA.Selenium.Edge;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.Text;
-using System.Reflection.Metadata;
 using Newtonsoft.Json;
 using static System.Net.Mime.MediaTypeNames;
-using Anthropic.Net;
-using Anthropic.Net.Constants;
 using System.Threading.Tasks;
 using System.Reflection.Metadata.Ecma335;
 
