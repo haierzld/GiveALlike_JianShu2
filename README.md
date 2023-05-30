@@ -3,10 +3,10 @@
 可以扮演【XXX角色】进行文章【XXXX】评论，内容不超过【xxx】字；
 
 
-#几点使用限制：
-1、浏览器，使用Edge;
-2、如果需要使用openAi，需要自己在GetOpenAiComment 中换成自己的Key ;
-3、如果是使用claude，那就需要自己先在slack中开通Claude,然后获得cookie 和 Authorization，以及channelId 
+# 几点使用限制：
+- 浏览器，使用Edge;
+- 如果需要使用openAi，需要自己在GetOpenAiComment 中换成自己的Key ;
+- 如果是使用claude，那就需要自己先在slack中开通Claude,然后获得cookie 和 Authorization，以及channelId 
 
 # claude 主要两个方法
 ## chat.postMessage
