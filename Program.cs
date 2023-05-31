@@ -199,12 +199,12 @@ class Program
         "周星驰",
         "阿米尔·汗(Aamir Khan)",
         "阿克谢·库玛尔(Akshay Kumar)",
-        "莫妮克·韦尔什(Monique Welsh)",
-        "詹姆斯·柯登(James Corden)",
-        "罗恩·阿特金森(Ron Atkinson)",
-        "阿列克谢·斯米尔诺夫(Aleksei Smirnov)",
-        "阿列克谢·波尔日诺夫(Aleksei Borysenko)",
-        "阿列克谢·涅斯特罗夫(Aleksei Nestorov)"
+        "周杰伦",
+        "刘德华",
+        "乔丹",
+        "马克吞温",
+        "阿甘",
+        "甘地"
         };
 
 
@@ -225,8 +225,8 @@ class Program
 
 
         //超过1000个字，按1000字来算；
-        if (content.Length > contextLength+2000)
-            content = content.Substring(1, contextLength+2000);
+        if (content.Length > (contextLength+2000))
+            content = content.Substring(1, (contextLength+2000));
 
         //随机生成10到30的整数
         Random random = new Random();
@@ -236,7 +236,7 @@ class Program
         string comedyStar = getRandomComedyStar();
         Console.WriteLine($"你现在扮演：{comedyStar}");
 
-        string addMessage = "\"用【" + comedyStar + "】的风格进行评论,根据这个文章内容【" + content + "】,请用小于" + randomNumber + "字进行评论,不要出现这篇文章;\"";
+        string addMessage = "\"你是一名点评专家，用【" + comedyStar + "】的风格进行评论,根据内容【" + content + "】,请用小于" + randomNumber + "字进行评论,不要出现繁体中文，不要出现这篇文章,不要[please note]，不要[Oops];\"";
         var channelId = "D057HV46G04";
         var jsonContent = $"{{\"channel\":\"{channelId}\",\"text\":{addMessage}}}";
         /*
@@ -313,6 +313,7 @@ class Program
         //因为会产出提示，就会不成功。
         if (responseString.Contains("Please note:"))
         {
+            //Claude was unable to load 
             Console.WriteLine($"AI评论获取失败！！！！");
             responseString = "手工点赞！";
         }
